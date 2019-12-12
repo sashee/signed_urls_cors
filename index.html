@@ -1,0 +1,147 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<script>window.BACKEND_URL = "${backend_url}";</script>
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			[...document.querySelectorAll("*[data-load=true]")].forEach(async (e) => {
+				const params = Object.entries({
+					"redirect": "true",
+					"cors": e.dataset.cors ? "true" : undefined,
+					"corsCredentials": e.dataset.corsCredentials ? "true" : undefined,
+					"bucket": e.dataset.bucket,
+				}).filter(([k, v]) => v !== undefined);
+				try {
+					const url = `$${e.dataset.backend === "domain" ? BACKEND_URL : "/api"}/file.html?$${params.map(([k, v]) => k + "=" + v).join("&")}`;
+					const opts = {credentials: e.dataset.credentials ? "include" : undefined};
+					e.title = `fetch("$${url}", $${JSON.stringify(opts)})`;
+					const res = await fetch(url, opts);
+					if (!res.ok) throw new Error("CORS");
+					const text = await res.text();
+					if (text !== "Hello world!") throw new Error("CORS");
+					e.innerHTML = "&#x2713;";
+					e.classList.add("success");
+				}catch(err) {
+					e.innerHTML = "&#x2717;";
+					e.classList.add("failed");
+				}
+			})
+		})
+	</script>
+	<style>
+		td div {
+			text-align:center;
+		}
+		div.failed {
+			background-color: tomato;
+		}
+		div.success {
+			background-color: lightgreen;
+		}
+		pre {
+			tab-size: 2;
+		}
+	</style>
+</head>
+<body>
+	<table>
+		<thead>
+			<tr>
+				<th colspan="2">fetch</th>
+				<th colspan="3">(API) no CORS</th>
+				<th colspan="3">(API) CORS
+				<pre>
+Allow-Origin: *
+				</pre>
+				</th>
+				<th colspan="3">(API) CORS + credentials
+				<pre>
+Allow-Origin: &lt;origin&gt;
+Allow-Credentials: true
+				</pre>
+				</th>
+			</tr>
+			<tr>
+				<th>URL</th>
+				<th>options</th>
+				<th>Bucket: No cors</th>
+				<th>Bucket: CORS: *
+					<pre>
+Allow-Origin: *
+					</pre>
+				</th>
+				<th>Bucket: CORS: null
+					<pre>
+Allow-Origin: null
+					</pre>
+				</th>
+				<th>Bucket: No cors</th>
+				<th>Bucket: CORS: *
+					<pre>
+Allow-Origin: *
+					</pre>
+				</th>
+				<th>Bucket: CORS: null
+					<pre>
+Allow-Origin: null
+					</pre>
+				</th>
+				<th>Bucket: No cors</th>
+				<th>Bucket: CORS: *
+<pre>
+Allow-Origin: *
+</pre>
+				</th>
+				<th>Bucket: CORS: null
+					<pre>
+Allow-Origin: null
+					</pre>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>backend: /api/</td>
+				<td>{}</td>
+				<td><div data-load="true"/></td>
+				<td><div data-load="true" data-bucket="cors"/></td>
+				<td><div data-load="true" data-bucket="cors_null"/></td>
+				<td><div data-load="true" data-cors="true"/></td>
+				<td><div data-load="true" data-cors="true" data-bucket="cors"/></td>
+				<td><div data-load="true" data-cors="true" data-bucket="cors_null"/></td>
+				<td><div data-load="true" data-cors="true" data-cors-credentials="true"/></td>
+				<td><div data-load="true" data-cors="true" data-cors-credentials="true" data-bucket="cors"/></td>
+				<td><div data-load="true" data-cors="true" data-cors-credentials="true" data-bucket="cors_null"/></td>
+			</tr>
+			<tr>
+				<td rowspan="2">backend: other domain</td>
+				<td>{}</td>
+				<td><div data-load="true" data-backend="domain"/></td>
+				<td><div data-load="true" data-bucket="cors" data-backend="domain"/></td>
+				<td><div data-load="true" data-bucket="cors_null" data-backend="domain"/></td>
+				<td><div data-load="true" data-cors="true" data-backend="domain"/></td>
+				<td><div data-load="true" data-cors="true" data-bucket="cors" data-backend="domain"/></td>
+				<td><div data-load="true" data-cors="true" data-bucket="cors_null" data-backend="domain"/></td>
+				<td><div data-load="true" data-cors="true" data-cors-credentials="true" data-backend="domain"/></td>
+				<td><div data-load="true" data-cors="true" data-cors-credentials="true" data-bucket="cors" data-backend="domain"/></td>
+				<td><div data-load="true" data-cors="true" data-cors-credentials="true" data-bucket="cors_null" data-backend="domain"/></td>
+			</tr>
+			<tr>
+				<td>{credentials: "include"}</td>
+				<td><div data-load="true" data-backend="domain" data-credentials="include"/></td>
+				<td><div data-load="true" data-bucket="cors" data-backend="domain" data-credentials="include"/></td>
+				<td><div data-load="true" data-bucket="cors_null" data-backend="domain" data-credentials="include"/></td>
+				<td><div data-load="true" data-cors="true" data-backend="domain" data-credentials="include"/></td>
+				<td><div data-load="true" data-cors="true" data-bucket="cors" data-backend="domain" data-credentials="include"/></td>
+				<td><div data-load="true" data-cors="true" data-bucket="cors_null" data-backend="domain" data-credentials="include"/></td>
+				<td><div data-load="true" data-cors="true" data-cors-credentials="true" data-backend="domain" data-credentials="include"/></td>
+				<td><div data-load="true" data-cors="true" data-cors-credentials="true" data-bucket="cors" data-backend="domain" data-credentials="include"/></td>
+				<td><div data-load="true" data-cors="true" data-cors-credentials="true" data-bucket="cors_null" data-backend="domain" data-credentials="include"/></td>
+			</tr>
+		</tbody>
+	</table>
+</body>
+</html>
