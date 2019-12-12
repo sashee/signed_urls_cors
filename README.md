@@ -3,4 +3,6 @@
 * terraform init
 * terraform apply
 
+![](docs/result.png)
+
 * terraform destroy
