@@ -4,11 +4,11 @@ provider "aws" {
 # S3 bucket
 
 resource "aws_s3_bucket" "bucket" {
-	force_destroy = "true"
+  force_destroy = "true"
 }
 
 resource "aws_s3_bucket" "bucket_cors" {
-	force_destroy = "true"
+  force_destroy = "true"
   cors_rule {
     allowed_methods = ["GET"]
     allowed_origins = ["*"]
@@ -16,7 +16,7 @@ resource "aws_s3_bucket" "bucket_cors" {
 }
 
 resource "aws_s3_bucket" "bucket_cors_null" {
-	force_destroy = "true"
+  force_destroy = "true"
   cors_rule {
     allowed_methods = ["GET"]
     allowed_origins = ["null"]
@@ -30,8 +30,8 @@ resource "random_id" "id" {
 }
 
 data "archive_file" "lambda_zip" {
-	type = "zip"
-	output_path = "/tmp/${random_id.id.hex}-lambda.zip"
+  type        = "zip"
+  output_path = "/tmp/${random_id.id.hex}-lambda.zip"
   source {
     content  = <<EOF
 const AWS = require("aws-sdk");
@@ -93,49 +93,49 @@ EOF
 }
 
 resource "aws_lambda_function" "signer_lambda" {
-	function_name = "signer-${random_id.id.hex}-function"
+  function_name = "signer-${random_id.id.hex}-function"
 
-  filename = data.archive_file.lambda_zip.output_path
+  filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
   handler = "backend.handler"
   runtime = "nodejs12.x"
-  role = aws_iam_role.lambda_exec.arn
-	environment {
-		variables = {
-			BUCKET = aws_s3_bucket.bucket.bucket
-			BUCKET_CORS = aws_s3_bucket.bucket_cors.bucket
-			BUCKET_CORS_NULL = aws_s3_bucket.bucket_cors_null.bucket
-		}
-	}
+  role    = aws_iam_role.lambda_exec.arn
+  environment {
+    variables = {
+      BUCKET           = aws_s3_bucket.bucket.bucket
+      BUCKET_CORS      = aws_s3_bucket.bucket_cors.bucket
+      BUCKET_CORS_NULL = aws_s3_bucket.bucket_cors_null.bucket
+    }
+  }
 }
 
 data "aws_iam_policy_document" "lambda_exec_role_policy" {
-	statement {
-		actions = [
-			"s3:GetObject",
-		]
-		resources = [
-			"${aws_s3_bucket.bucket.arn}/*",
-			"${aws_s3_bucket.bucket_cors.arn}/*",
-			"${aws_s3_bucket.bucket_cors_null.arn}/*"
-		]
-	}
-	statement {
-		actions = [
-			"logs:CreateLogGroup",
-			"logs:CreateLogStream",
-			"logs:PutLogEvents"
-		]
-		resources = [
-			"arn:aws:logs:*:*:*"
-		]
-	}
+  statement {
+    actions = [
+      "s3:GetObject",
+    ]
+    resources = [
+      "${aws_s3_bucket.bucket.arn}/*",
+      "${aws_s3_bucket.bucket_cors.arn}/*",
+      "${aws_s3_bucket.bucket_cors_null.arn}/*"
+    ]
+  }
+  statement {
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = [
+      "arn:aws:logs:*:*:*"
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "lambda_exec_role" {
-	role = aws_iam_role.lambda_exec.id
-	policy = data.aws_iam_policy_document.lambda_exec_role_policy.json
+  role   = aws_iam_role.lambda_exec.id
+  policy = data.aws_iam_policy_document.lambda_exec_role_policy.json
 }
 
 resource "aws_iam_role" "lambda_exec" {
@@ -158,39 +158,39 @@ EOF
 # sample data
 
 resource "aws_s3_bucket_object" "object" {
-  key    = "file.html"
-	content = "Hello world!"
-  bucket = aws_s3_bucket.bucket.bucket
+  key     = "file.html"
+  content = "Hello world!"
+  bucket  = aws_s3_bucket.bucket.bucket
 
-	# open in the browser
-	content_disposition = "inline"
-	content_type = "text/html"
+  # open in the browser
+  content_disposition = "inline"
+  content_type        = "text/html"
 }
 
 resource "aws_s3_bucket_object" "object_cors" {
-  key    = "file.html"
-	content = "Hello world!"
-  bucket = aws_s3_bucket.bucket_cors.bucket
+  key     = "file.html"
+  content = "Hello world!"
+  bucket  = aws_s3_bucket.bucket_cors.bucket
 
-	# open in the browser
-	content_disposition = "inline"
-	content_type = "text/html"
+  # open in the browser
+  content_disposition = "inline"
+  content_type        = "text/html"
 }
 
 resource "aws_s3_bucket_object" "object_cors_null" {
-  key    = "file.html"
-	content = "Hello world!"
-  bucket = aws_s3_bucket.bucket_cors_null.bucket
+  key     = "file.html"
+  content = "Hello world!"
+  bucket  = aws_s3_bucket.bucket_cors_null.bucket
 
-	# open in the browser
-	content_disposition = "inline"
-	content_type = "text/html"
+  # open in the browser
+  content_disposition = "inline"
+  content_type        = "text/html"
 }
 
 # API Gateway
 
 resource "aws_api_gateway_rest_api" "rest_api" {
-	name = "signer-${random_id.id.hex}-rest-api"
+  name = "signer-${random_id.id.hex}-rest-api"
 }
 
 resource "aws_api_gateway_resource" "proxy" {
@@ -255,7 +255,7 @@ resource "aws_lambda_permission" "apigw" {
 # Frontend bucket
 
 resource "aws_s3_bucket" "frontend_bucket" {
-	force_destroy = "true"
+  force_destroy = "true"
 }
 
 resource "aws_s3_bucket_policy" "default" {
@@ -288,11 +288,11 @@ data "template_file" "index" {
 }
 
 resource "aws_s3_bucket_object" "frontend_object_index_html" {
-  key    = "index.html"
-	content = data.template_file.index.rendered
-  bucket = aws_s3_bucket.frontend_bucket.bucket
-  etag = md5(data.template_file.index.rendered)
-	content_type = "text/html"
+  key          = "index.html"
+  content      = data.template_file.index.rendered
+  bucket       = aws_s3_bucket.frontend_bucket.bucket
+  etag         = md5(data.template_file.index.rendered)
+  content_type = "text/html"
 }
 
 resource "aws_cloudfront_distribution" "distribution" {
@@ -307,7 +307,7 @@ resource "aws_cloudfront_distribution" "distribution" {
   origin {
     domain_name = replace(aws_api_gateway_deployment.deployment.invoke_url, "/^https?://([^/]*).*/", "$1")
     origin_id   = "apigw"
-		origin_path = "/sign"
+    origin_path = "/sign"
 
     custom_origin_config {
       http_port              = 80
@@ -370,5 +370,5 @@ resource "aws_cloudfront_distribution" "distribution" {
 }
 
 output "frontend_url" {
-	value = aws_cloudfront_distribution.distribution.domain_name
+  value = aws_cloudfront_distribution.distribution.domain_name
 }
