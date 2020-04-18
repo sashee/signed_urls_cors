@@ -1,5 +1,7 @@
 # This is demonstration code to see what bucket CORS configurations work when using a HTTP redirect
 
+To learn more, see [this blog post](https://advancedweb.hu/how-to-solve-cors-problems-when-redirecting-to-s3-signed-urls/).
+
 ## How to use
 
 * ```terraform init```
@@ -34,3 +36,5 @@ This gives 3x3x3=27 possible configurations. A HTTP request is sent by the brows
 Here are the results:
 
 ![](docs/result.png)
+
+Note: I noticed that some requests are stuck in "pending" state. This is probably due to an extension I'm using as it works in incognito mode.
